@@ -1,0 +1,2 @@
+[console_scripts]
+recursive-rebase = recursive_rebase.main:main
