@@ -24,27 +24,35 @@ def get_sorted_branches_in_stack(stack_tag):
         .split("\n")
     )
     branches = [branch.strip() for branch in output if branch]
+    print(f"Branches: {branches}")
     branches = [branch[1:] if branch[0] == "*" else branch for branch in branches]
+    branches = [branch.strip() for branch in branches]
+
+    print(f"Branches: {branches}")
+
     branches.sort(key=lambda x: int(x.split("/")[-1]))
     return branches
 
 
-def sync(stack_tag):
+def sync(stack_tag, start_number):
     print("Syncing branches")
     branches = get_sorted_branches_in_stack(stack_tag)
     print(f"Branches: {branches}")
-    for i in range(1, len(branches)):
+    for i in range(start_number + 1, len(branches)):
         rebase_onto(branches[i - 1], branches[i])
         force_push(branches[i])
 
 
 def main():
-    # parser = argparse.ArgumentParser(
-    #     description="Recursively rebase a series of common branches to create a stack of branches."
-    # )
-    # parser.add_argument("stack_tag", help="The common tag for the stack of branches.")
-    # args = parser.parse_args()
-    sync("id")
+    parser = argparse.ArgumentParser(
+        description="Recursively rebase a series of common branches to create a stack of branches."
+    )
+    parser.add_argument("stack_tag", help="The common tag for the stack of branches.")
+    parser.add_argument(
+        "start_number", type=int, help="The starting number of the branches."
+    )
+    args = parser.parse_args()
+    sync(args.stack_tag, args.start_number)
 
 
 if __name__ == "__main__":
