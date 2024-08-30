@@ -64,25 +64,17 @@ def sync(stack_tag, start_number):
     print("Syncing branches")
     branches = get_sorted_branches_in_stack(stack_tag)
     print(f"Branches: {branches}")
+
     for i in range(start_number + 1, len(branches)):
-        if i == 0:
-            rebase_onto("main", branches[i])
-            force_push(branches[i])
-            print(f"PR base for {branches[i]} to main")
-            subprocess.check_output(
-                f"gh pr edit {branches[i]} --base main", shell=True
-            ).decode("utf-8")
-            print(f"Printing PR body for {branches[i]}")
-            print_pr_stack(branches[i])
-        else:
-            rebase_onto(branches[i - 1], branches[i])
-            force_push(branches[i])
-            print(f"PR base for {branches[i]} to {branches[i-1]}")
-            subprocess.check_output(
-                f"gh pr edit {branches[i]} --base {branches[i-1]}", shell=True
-            ).decode("utf-8")
-            print(f"Printing PR body for {branches[i]}")
-            print_pr_stack(branches[i])
+        base_branch = "main" if i == 0 else branches[i - 1]
+        rebase_onto(base_branch, branches[i])
+        force_push(branches[i])
+        print(f"PR base for {branches[i]} to {base_branch}")
+        subprocess.check_output(
+            f"gh pr edit {branches[i]} --base {base_branch}", shell=True
+        ).decode("utf-8")
+        print(f"Printing PR body for {branches[i]}")
+        print_pr_stack(branches[i])
 
 
 def main():
