@@ -39,8 +39,11 @@ def sync(stack_tag, start_number):
     branches = get_sorted_branches_in_stack(stack_tag)
     print(f"Branches: {branches}")
     for i in range(start_number + 1, len(branches)):
-        rebase_onto(branches[i - 1], branches[i])
-        force_push(branches[i])
+        if i == 0:
+            rebase_onto("main", branches[i])
+        else:
+            rebase_onto(branches[i - 1], branches[i])
+            force_push(branches[i])
 
 
 def main():
