@@ -1,3 +1,4 @@
 build
 dist
 *.egg-info
+recursive_rebase/recursive_rebase.egg-info
