@@ -36,19 +36,14 @@ def print_pr_stack(current_branch):
     stack = []
     for i in range(len(branches)):
         branch = branches[i]
-        pr_title = subprocess.check_output(
-            f"gh pr view {branch} --json title", shell=True
-        ).decode("utf-8")
-        pr_title_dict = json.loads(pr_title)
         pr_link = subprocess.check_output(
             f"gh pr view {branch} --json url", shell=True
         ).decode("utf-8")
         pr_link_dict = json.loads(pr_link)
-        title = pr_title_dict["title"]
         link = pr_link_dict["url"]
-        append_str = f"[{title}]({link})"
+        append_str = f"* {link}"
         if branch == current_branch:
-            append_str += " <- here"
+            append_str += "  <- here"
         append_str += "\n"
         stack.append(append_str)
 
