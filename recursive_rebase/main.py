@@ -27,11 +27,12 @@ def get_sorted_branches_in_stack(stack_tag):
     branches = [branch.strip() for branch in output if branch]
     branches = [branch[1:] if branch[0] == "*" else branch for branch in branches]
     branches = [branch.strip() for branch in branches]
+    print("Branches:", branches)
     branches.sort(key=lambda x: int(x.split("/")[-1]))
     return branches
 
 
-def print_pr_stack(current_branch):
+def update_pr_stack(current_branch):
     branches = get_sorted_branches_in_stack(current_branch.split("/")[0])
     stack = []
     for i in range(len(branches)):
@@ -54,6 +55,18 @@ def print_pr_stack(current_branch):
     print("Stack:")
     print(stack_str)
 
+    stack_str = f"### Stack\n{stack_str}"
+
+    current_pr_body_unloaded = subprocess.check_output(
+        f"gh pr view {current_branch} --json body", shell=True
+    ).decode("utf-8")
+    current_pr_body = json.loads(current_pr_body_unloaded)["body"]
+    current_pr_body = current_pr_body.split("### Stack")[0].strip()
+    subprocess.check_output(
+        f"gh pr edit {current_branch} --body '{current_pr_body}\n\n{stack_str}'",
+        shell=True,
+    ).decode("utf-8")
+
 
 def sync(stack_tag, start_number):
     print("Syncing branches")
@@ -68,13 +81,16 @@ def sync(stack_tag, start_number):
             f"gh pr edit {branches[i]} --base {base_branch}", shell=True
         ).decode("utf-8")
         print(f"Printing PR body for {branches[i]}")
-        print_pr_stack(branches[i])
+        update_pr_stack(branches[i])
 
 
 def reanchor(stack_tag, start_number):
     branches = get_sorted_branches_in_stack(stack_tag)
     rebase_onto("main", branches[start_number])
-    print_pr_stack(branches[start_number])
+    subprocess.check_output(
+        f"gh pr edit {branches[start_number]} --base main", shell=True
+    ).decode("utf-8")
+    update_pr_stack(branches[start_number])
     force_push(branches[start_number])
     sync(stack_tag, start_number)
 
