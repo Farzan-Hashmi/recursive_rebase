@@ -64,7 +64,6 @@ def sync(stack_tag, start_number):
     print("Syncing branches")
     branches = get_sorted_branches_in_stack(stack_tag)
     print(f"Branches: {branches}")
-
     for i in range(start_number + 1, len(branches)):
         base_branch = "main" if i == 0 else branches[i - 1]
         rebase_onto(base_branch, branches[i])
@@ -77,16 +76,49 @@ def sync(stack_tag, start_number):
         print_pr_stack(branches[i])
 
 
+def reanchor(stack_tag, start_number):
+    branches = get_sorted_branches_in_stack(stack_tag)
+    rebase_onto("main", branches[start_number])
+    print_pr_stack(branches[start_number])
+    force_push(branches[start_number])
+    sync(stack_tag, start_number)
+
+
 def main():
-    parser = argparse.ArgumentParser(
-        description="Recursively rebase a series of common branches to create a stack of branches."
+    parser = argparse.ArgumentParser(description="Manage a stack of branches.")
+    subparsers = parser.add_subparsers(dest="command")
+
+    # Subparser for the sync command
+    sync_parser = subparsers.add_parser(
+        "sync",
+        help="Recursively rebase a series of common branches to create a stack of branches.",
     )
-    parser.add_argument("stack_tag", help="The common tag for the stack of branches.")
-    parser.add_argument(
+    sync_parser.add_argument(
+        "stack_tag", help="The common tag for the stack of branches."
+    )
+    sync_parser.add_argument(
         "start_number", type=int, help="The starting number of the branches."
     )
+
+    # Subparser for the reanchor command
+    reanchor_parser = subparsers.add_parser(
+        "reanchor", help="Reanchor the stack of branches to the main branch."
+    )
+    reanchor_parser.add_argument(
+        "stack_tag", help="The common tag for the stack of branches."
+    )
+    reanchor_parser.add_argument(
+        "start_number", type=int, help="The starting number of the branches."
+    )
+
     args = parser.parse_args()
-    sync(args.stack_tag, args.start_number)
+
+    if args.command == "sync":
+        sync(args.stack_tag, args.start_number)
+    elif args.command == "reanchor":
+        reanchor(args.stack_tag, args.start_number)
+    else:
+        parser.print_help()
 
 
 if __name__ == "__main__":
